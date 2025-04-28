@@ -1,0 +1,271 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Happy Birthday Studu!</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: url('https://i.ibb.co/VW7Rj9P/starry-sky.jpg') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Poppins', sans-serif;
+      color: white;
+      text-align: center;
+      overflow: hidden;
+    }
+    h1, p {
+      margin: 20px;
+    }
+    #intro, #puzzle, #candle, #speech, #fireworks {
+      display: none;
+    }
+    #intro {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      animation: fadeIn 2s ease-in-out;
+    }
+    #intro h1 {
+      font-size: 2.5rem;
+      animation: fadeInMove 2s ease forwards;
+    }
+    #intro p {
+      font-size: 1.2rem;
+      margin-top: 10px;
+      animation: fadeInMove 2s ease forwards;
+    }
+    #start-btn {
+      padding: 12px 24px;
+      margin-top: 30px;
+      font-size: 1.2rem;
+      border-radius: 10px;
+      border: none;
+      background-color: #ff69b4;
+      color: white;
+      cursor: pointer;
+      animation: fadeIn 3s ease forwards;
+    }
+    #scrambled-word {
+      font-size: 2rem;
+      margin-top: 30px;
+    }
+    #input-word {
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: none;
+    }
+    #submit-btn {
+      padding: 10px 20px;
+      margin-top: 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+      border: none;
+      background-color: #ff69b4;
+      color: white;
+      cursor: pointer;
+    }
+    #candle img {
+      width: 150px;
+      margin-top: 50px;
+    }
+    #speech {
+      font-size: 1.8rem;
+      margin-top: 50px;
+    }
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+    }
+    #shooting-star {
+      position: absolute;
+      top: 20%;
+      left: -10%;
+      width: 150px;
+      height: 2px;
+      background: linear-gradient(90deg, white, transparent);
+      animation: shootingStar 2s ease-in-out 1s forwards;
+    }
+    @keyframes shootingStar {
+      0% { left: -10%; top: 20%; opacity: 1; }
+      100% { left: 110%; top: 30%; opacity: 0; }
+    }
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    @keyframes fadeInMove {
+      0% { opacity: 0; transform: translateY(-20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="intro">
+    <div id="shooting-star"></div>
+    <h1>🎉 Welcome to your Birthday Adventure, Studu! 🎂</h1>
+    <p>✨ Solve the mystery to unlock your surprise! ✨</p>
+    <button id="start-btn">Let's Start!</button>
+  </div>
+
+  <div id="puzzle">
+    <h1>Unscramble the word!</h1>
+    <div id="scrambled-word">EMULYDVTROESOFRSUO</div>
+    <input type="text" id="input-word" placeholder="Enter the correct word...">
+    <br>
+    <button id="submit-btn">Submit</button>
+  </div>
+
+  <div id="candle">
+    <img id="candle-img" src="https://i.ibb.co/F5CrvtL/candle.gif" alt="Candle">
+    <p>Blow on your mic to blow out the candle!</p>
+  </div>
+
+  <div id="speech">
+    <p>Happy Birthday Studu! 🎉 (Insert your birthday speech here!)</p>
+  </div>
+
+  <canvas id="fireworks"></canvas>
+
+  <script>
+    const intro = document.getElementById('intro');
+    const puzzle = document.getElementById('puzzle');
+    const candle = document.getElementById('candle');
+    const speech = document.getElementById('speech');
+    const fireworks = document.getElementById('fireworks');
+    const startBtn = document.getElementById('start-btn');
+    const input = document.getElementById('input-word');
+    const button = document.getElementById('submit-btn');
+    const candleImg = document.getElementById('candle-img');
+
+    startBtn.onclick = () => {
+      intro.style.display = 'none';
+      puzzle.style.display = 'block';
+    };
+
+    const correctWord = "StuduMyLoveForever".toLowerCase();
+
+    button.onclick = () => {
+      if (input.value.toLowerCase() === correctWord) {
+        puzzle.style.display = 'none';
+        candle.style.display = 'block';
+        startMic();
+      } else {
+        alert("Try again! 🧩");
+      }
+    };
+
+    function startMic() {
+      if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+          .then(function(stream) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const mic = audioContext.createMediaStreamSource(stream);
+            const analyser = audioContext.createAnalyser();
+            mic.connect(analyser);
+            analyser.fftSize = 512;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            function detectBlow() {
+              analyser.getByteFrequencyData(dataArray);
+              let volume = dataArray.reduce((a, b) => a + b) / bufferLength;
+              if (volume > 50) {
+                blowOut();
+              } else {
+                requestAnimationFrame(detectBlow);
+              }
+            }
+            detectBlow();
+          })
+          .catch(function(err) {
+            console.log('Mic access denied.', err);
+          });
+      } else {
+        alert("Microphone not supported.");
+      }
+    }
+
+    function blowOut() {
+      candleImg.src = "https://i.ibb.co/5GzXkwq/candle-out.png";
+      setTimeout(() => {
+        candle.style.display = 'none';
+        speech.style.display = 'block';
+        launchFireworks();
+      }, 1500);
+    }
+
+    function launchFireworks() {
+      const canvas = fireworks;
+      const ctx = canvas.getContext('2d');
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      const particles = [];
+
+      function createParticle(x, y, color) {
+        return {
+          x: x,
+          y: y,
+          speed: Math.random() * 5 + 2,
+          direction: Math.random() * Math.PI * 2,
+          radius: Math.random() * 2 + 1,
+          color: color,
+          alpha: 1
+        };
+      }
+
+      function explode(x, y) {
+        const colors = ["#ff5f5f", "#ffcc00", "#66ff66", "#66ccff", "#ff66cc"];
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        for (let i = 0; i < 50; i++) {
+          particles.push(createParticle(x, y, color));
+        }
+      }
+
+      function animate() {
+        ctx.fillStyle = "rgba(0,0,0,0.2)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((p, index) => {
+          p.x += Math.cos(p.direction) * p.speed;
+          p.y += Math.sin(p.direction) * p.speed;
+          p.alpha -= 0.01;
+          if (p.alpha <= 0) {
+            particles.splice(index, 1);
+          } else {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${hexToRgb(p.color)}, ${p.alpha})`;
+            ctx.fill();
+          }
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      function hexToRgb(hex) {
+        let bigint = parseInt(hex.replace("#", ""), 16);
+        let r = (bigint >> 16) & 255;
+        let g = (bigint >> 8) & 255;
+        let b = bigint & 255;
+        return r + "," + g + "," + b;
+      }
+
+      setInterval(() => {
+        explode(Math.random() * canvas.width, Math.random() * canvas.height);
+      }, 500);
+
+      animate();
+    }
+  </script>
+</body>
+</html>
